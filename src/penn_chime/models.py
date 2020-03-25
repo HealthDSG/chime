@@ -98,12 +98,16 @@ def sir(
     sy_n = (-betayy * sy * iy) + (-betayo * sy * io) + sy
     iy_n = (betayy * sy * iy + betayo * sy * io - gamma * iy) + iy
     ry_n = gamma * iy + ry
-    so_n = (-betaoo * so * io) + (betaoy * so * iy) + so
+    so_n = (-betaoo * so * io) + (-betaoy * so * iy) + so
     io_n = (betaoo * so * io + betaoy * so * iy - gamma * io) + io
     ro_n = gamma * io + ro
-    for x in (sy_n, iy_n, ry_n, so_n, io_n, ro_n):    
-        if x < 0.0:
-            x = 0.0
+
+    sy_n = 0.0 if sy_n < 0.0 else sy_n
+    iy_n = 0.0 if iy_n < 0.0 else iy_n
+    ry_n = 0.0 if ry_n < 0.0 else ry_n
+    so_n = 0.0 if so_n < 0.0 else so_n
+    io_n = 0.0 if io_n < 0.0 else io_n
+    ro_n = 0.0 if ro_n < 0.0 else ro_n
 
     scaley = ny / (sy_n + iy_n + ry_n)
     scaleo = no / (so_n + io_n + ro_n)
