@@ -4,7 +4,7 @@ Changes affecting results or their presentation should also update
 `change_date`, so users can see when results have last changed
 """
 
-from .utils import RateLos
+from utils import RateLos
 
 
 class Parameters:

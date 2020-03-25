@@ -12,7 +12,7 @@ from typing import Dict, Generator, Tuple
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 
-from .parameters import Parameters
+from parameters import Parameters
 
 
 class SimSirModel:
@@ -90,40 +90,51 @@ class SimSirModel:
 
 
 def sir(
-    s: float, i: float, r: float, beta: float, gamma: float, n: float
-) -> Tuple[float, float, float]:
+    sy: float, iy: float, ry: float, so: float, io: float, ro: float, 
+    betayy: float, betayo: float, betaoy: float, betaoo:float, gamma: float, 
+    ny: float, no: float
+) -> Tuple[float, float, float, float, float, float]:
     """The SIR model, one time step."""
-    s_n = (-beta * s * i) + s
-    i_n = (beta * s * i - gamma * i) + i
-    r_n = gamma * i + r
-    if s_n < 0.0:
-        s_n = 0.0
-    if i_n < 0.0:
-        i_n = 0.0
-    if r_n < 0.0:
-        r_n = 0.0
+    sy_n = (-betayy * sy * iy) + (-betayo * sy * io) + sy
+    iy_n = (betayy * sy * iy + betayo * sy * io - gamma * iy) + iy
+    ry_n = gamma * iy + ry
+    so_n = (-betaoo * so * io) + (betaoy * so * iy) + so
+    io_n = (betaoo * so * io + betaoy * so * iy - gamma * io) + io
+    ro_n = gamma * io + ro
+    for x in (sy_n, iy_n, ry_n, so_n, io_n, ro_n):    
+        if x < 0.0:
+            x = 0.0
 
-    scale = n / (s_n + i_n + r_n)
-    return s_n * scale, i_n * scale, r_n * scale
+    scaley = ny / (sy_n + iy_n + ry_n)
+    scaleo = no / (so_n + io_n + ro_n)
+    return (sy_n * scaley, iy_n * scaley, ry_n * scaley, 
+            so_n * scaleo, io_n * scaleo, ro_n * scaleo)
 
 
 def gen_sir(
-    s: float, i: float, r: float, beta: float, gamma: float, n_days: int
+    sy: float, iy: float, ry: float, so: float, io: float, ro: float, 
+    betayy: float, betayo: float, betaoy: float, betaoo:float, gamma: float, 
+    n_days: int
 ) -> Generator[Tuple[float, float, float], None, None]:
     """Simulate SIR model forward in time yielding tuples."""
-    s, i, r = (float(v) for v in (s, i, r))
-    n = s + i + r
+    sy, iy, ry, so, io, ro = (float(v) for v in (sy, iy, ry, so, io, ro))
+    ny = sy + iy + ry
+    no = so + io + ro
     for d in range(n_days + 1):
-        yield d, s, i, r
-        s, i, r = sir(s, i, r, beta, gamma, n)
+        yield d, sy, iy, ry, so, io, ro
+        sy, iy, ry, so, io, ro = sir(sy, iy, ry, so, io, ro, betayy, betayo, 
+                                     betaoy, betaoo, gamma, ny, no)
 
 
 def sim_sir_df(
-    s: float, i: float, r: float, beta: float, gamma: float, n_days
+    sy: float, iy: float, ry: float, so: float, io: float, ro: float, 
+    betayy: float, betayo: float, betaoy: float, betaoo:float, gamma: float, 
+    n_days
 ) -> pd.DataFrame:
     """Simulate the SIR model forward in time."""
     return pd.DataFrame(
-        data=gen_sir(s, i, r, beta, gamma, n_days),
+        data=gen_sir(sy, iy, ry, so, io, ro, betayy, betayo, betaoy, betaoo, 
+                     gamma, n_days),
         columns=("day", "susceptible", "infected", "recovered"),
     )
 
