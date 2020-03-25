@@ -116,14 +116,20 @@ def sir(
 
 
 def gen_sir(
-    sy: float, iy: float, ry: float, so: float, io: float, ro: float, 
-    betayy: float, betayo: float, betaoy: float, betaoo:float, gamma: float, 
-    n_days: int
+    s: float, i: float, r: float, po: float, beta: float, tau: float, 
+    gamma: float, n_days: int
 ) -> Generator[Tuple[float, float, float], None, None]:
     """Simulate SIR model forward in time yielding tuples."""
-    sy, iy, ry, so, io, ro = (float(v) for v in (sy, iy, ry, so, io, ro))
+    s, i, r = (float(v) for v in (s, i, r))
+    so, io, ro = (v * po for v in (s, i, r))
+    sy, iy, ry = (v * (1 - po) for v in (s, i, r))
     ny = sy + iy + ry
     no = so + io + ro
+    betayy = beta * (beta * ny) / (beta * tau * no + beta * ny)
+    betayo = beta * (beta * tau * no) / (beta * tau * no + beta * ny)
+    betaoy = beta * tau * (beta * ny) / (beta * tau * no + beta * ny)
+    betaoo = beta * tau * (beta * tau * no) / (beta * tau * no + beta * ny)
+
     for d in range(n_days + 1):
         yield d, sy, iy, ry, so, io, ro
         sy, iy, ry, so, io, ro = sir(sy, iy, ry, so, io, ro, betayy, betayo, 
@@ -131,15 +137,14 @@ def gen_sir(
 
 
 def sim_sir_df(
-    sy: float, iy: float, ry: float, so: float, io: float, ro: float, 
-    betayy: float, betayo: float, betaoy: float, betaoo:float, gamma: float, 
-    n_days
+    s: float, i: float, r: float, po: float, beta: float, tau: float, 
+    gamma: float, n_days
 ) -> pd.DataFrame:
     """Simulate the SIR model forward in time."""
     return pd.DataFrame(
-        data=gen_sir(sy, iy, ry, so, io, ro, betayy, betayo, betaoy, betaoo, 
-                     gamma, n_days),
-        columns=("day", "susceptible", "infected", "recovered"),
+        data=gen_sir(s, i, r, po, beta, tau, gamma, n_days),
+        columns=("day", "susceptible_young", "infected_young", "recovered_young",
+                 "susceptible_old", "infected_old", "recovered_old"),
     )
 
 
