@@ -38,6 +38,8 @@ class SimSirModel:
 
         self.gamma = gamma = 1.0 / p.recovery_days
 
+        self.omega = omega = 1.0 - p.old_pop_relative_contact_rate
+
         # Contact rate, beta
         self.beta = beta = (
             (intrinsic_growth_rate + gamma)
@@ -61,7 +63,9 @@ class SimSirModel:
             p.susceptible,
             infected,
             recovered,
+            p.older_population_rate,
             beta,
+            omega,
             gamma,
             p.n_days,
         )
@@ -116,7 +120,7 @@ def sir(
 
 
 def gen_sir(
-    s: float, i: float, r: float, po: float, beta: float, tau: float, 
+    s: float, i: float, r: float, po: float, beta: float, omega: float, 
     gamma: float, n_days: int
 ) -> Generator[Tuple[float, float, float], None, None]:
     """Simulate SIR model forward in time yielding tuples."""
@@ -125,26 +129,25 @@ def gen_sir(
     sy, iy, ry = (v * (1 - po) for v in (s, i, r))
     ny = sy + iy + ry
     no = so + io + ro
-    betayy = beta * (beta * ny) / (beta * tau * no + beta * ny)
-    betayo = beta * (beta * tau * no) / (beta * tau * no + beta * ny)
-    betaoy = beta * tau * (beta * ny) / (beta * tau * no + beta * ny)
-    betaoo = beta * tau * (beta * tau * no) / (beta * tau * no + beta * ny)
+    betayy = beta *  ny / (no + ny)
+    betayo = beta * omega * no / (no + ny)
+    betaoy = beta * omega * ny / (no + ny)
+    betaoo = beta * omega * no / (no + ny)
 
     for d in range(n_days + 1):
-        yield d, sy, iy, ry, so, io, ro
+        yield d, sy + so, iy + io, ry + ro
         sy, iy, ry, so, io, ro = sir(sy, iy, ry, so, io, ro, betayy, betayo, 
                                      betaoy, betaoo, gamma, ny, no)
 
 
 def sim_sir_df(
-    s: float, i: float, r: float, po: float, beta: float, tau: float, 
+    s: float, i: float, r: float, po: float, beta: float, omega: float, 
     gamma: float, n_days
 ) -> pd.DataFrame:
     """Simulate the SIR model forward in time."""
     return pd.DataFrame(
-        data=gen_sir(s, i, r, po, beta, tau, gamma, n_days),
-        columns=("day", "susceptible_young", "infected_young", "recovered_young",
-                 "susceptible_old", "infected_old", "recovered_old"),
+        data=gen_sir(s, i, r, po, beta, omega, gamma, n_days),
+        columns=("day", "susceptible", "infected", "recovered"),
     )
 
 

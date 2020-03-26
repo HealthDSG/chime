@@ -26,6 +26,8 @@ class Constants:
         doubling_time: int,
         known_infected: int,
         relative_contact_rate: int,
+        older_population_rate: int,
+        old_pop_relative_contact_rate: int,
         region: Regions,
 
         hospitalized: RateLos,
@@ -43,6 +45,8 @@ class Constants:
         self.known_infected = known_infected
         self.doubling_time = doubling_time
         self.relative_contact_rate = relative_contact_rate
+        self.older_population_rate = older_population_rate
+        self.old_pop_relative_contact_rate = old_pop_relative_contact_rate
 
         self.hospitalized = hospitalized
         self.icu = icu

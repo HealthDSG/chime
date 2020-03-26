@@ -129,6 +129,30 @@ def display_sidebar(st, d: Constants) -> Parameters:
         / 100.0
     )
 
+    older_population_rate = (
+        st.sidebar.number_input(
+            "Percent of population over 65",
+            min_value=0,
+            max_value=100,
+            value=d.older_pop_rate * 100,
+            step=1,
+            format="%f",
+        )
+        / 100.0
+    )
+
+    old_pop_relative_contact_rate = (
+        st.sidebar.number_input(
+            "Percent Increased Social Distancing of the Population over 65",
+            min_value=0,
+            max_value=100,
+            value=int(d.old_pop_relative_contact_rate * 100),
+            step=5,
+            format="%i",
+        )
+        / 100.0
+    )
+
     hospitalized_rate = (
         st.sidebar.number_input(
             "Hospitalization %(total infections)",
@@ -230,6 +254,8 @@ def display_sidebar(st, d: Constants) -> Parameters:
         max_y_axis=max_y_axis,
         n_days=n_days,
         relative_contact_rate=relative_contact_rate,
+        older_population_rate=older_population_rate,
+        old_pop_relative_contact_rate=old_pop_relative_contact_rate,
         susceptible=susceptible,
 
         hospitalized=RateLos(hospitalized_rate, hospitalized_los),
