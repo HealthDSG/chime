@@ -91,8 +91,22 @@ def parse_args():
             1.0,
             "Social Distancing Reduction Rate: 0.0 - 1.0",
         ),
+        (
+            "--older-population-rate",
+            float,
+            0.0,
+            1.0,
+            "Fraction of population over 65 years old: 0.0 - 1.0",
+        ),
+        (
+            "--old-pop-relative-contact-rate",
+            float,
+            0.0,
+            1.0,
+            "Increase in social distancing in population over 65 years old: 0.0 - 1.0",
+        )
         ("--susceptible", int, 1, None, "Regional Population >= 1"),
-        ("--ventilated-los", int, 0, None, "Hospitalized Length of Stay (days)"),
+        ("--ventilated-los", int, 0, None, "Ventilated Length of Stay (days)"),
         ("--ventilated-rate", float, 0.0, 1.0, "Ventilated Rate: 0.0 - 1.0"),
     ):
         parser.add_argument(arg, type=validator(cast, min_value, max_value))
@@ -110,6 +124,8 @@ def main():
         market_share=a.market_share,
         n_days=a.n_days,
         relative_contact_rate=a.relative_contact_rate,
+        older_population_rate=a.older_population_rate,
+        old_pop_relative_contact_rate=a.old_pop_relative_contact_rate,
         susceptible=a.susceptible,
 
         hospitalized=RateLos(a.hospitalized_rate, a.hospitalized_los),

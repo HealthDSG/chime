@@ -25,7 +25,7 @@ spec:
         app: chime
     spec:
       containers:
-      - image: docker.pkg.github.com/codeforphilly/chime/penn-chime:1.0.0
+      - image: docker.pkg.github.com/codeforphilly/chime/penn-chime:0.4.1
         name: chime
         ports:
         - containerPort: 8000
@@ -67,18 +67,18 @@ metadata:
 spec:
   tls:
   - hosts:
-    - penn-chime.phl.io
-    - lke.penn-chime.phl.io
+    - penn-chime.bus.phl.io
+    - penn-chime-alt.bus.phl.io
     secretName: tls-secret
   rules:
-  - host: penn-chime.phl.io
+  - host: penn-chime.bus.phl.io
     http:
       paths:
       - path: /
         backend:
           serviceName: chime
           servicePort: 80
-  - host: lke.penn-chime.phl.io
+  - host: penn-chime-alt.bus.phl.io
     http:
       paths:
       - path: /
@@ -98,6 +98,22 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-buffering: "on"  # Important!
     nginx.ingress.kubernetes.io/configuration-snippet: |
+      location / {
+      sub_filter </head>
+        '<!-- Google Tag Manager -->
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-KBZ6ZKX');</script>
+        <!-- End Google Tag Manager -->';
+      sub_filter </body>
+        '<!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KBZ6ZKX"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->'
+        sub_filter_once on;
+      }
       proxy_cache static-cache;
       proxy_cache_valid 404 1m;
       proxy_cache_valid 200 10m;
@@ -109,14 +125,14 @@ metadata:
       add_header X-Cache-Status $upstream_cache_status;
 spec:
   rules:
-  - host: penn-chime.phl.io
+  - host: penn-chime.bus.phl.io
     http:
       paths:
       - path: /static/
         backend:
           serviceName: chime
           servicePort: 80
-  - host: lke.penn-chime.phl.io
+  - host: penn-chime-alt.bus.phl.io
     http:
       paths:
       - path: /static/
